@@ -21,13 +21,13 @@ export function ICMTrainer() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold mb-1">ICM Calculator</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1">ICM Calculator</h1>
         <p className="text-chip-ivory/70">
           Malmuth-Harville. Enter chip stacks and payout structure (comma-separated).
         </p>
       </header>
 
-      <section className="felt-panel p-5 space-y-4">
+      <section className="felt-panel p-4 sm:p-5 space-y-4">
         <div>
           <label className="text-xs text-chip-gold uppercase tracking-wider block mb-1">
             Chip Stacks
@@ -73,8 +73,8 @@ export function ICMTrainer() {
         </div>
       </section>
 
-      <section className="felt-panel p-5">
-        <div className="flex justify-between items-baseline mb-3">
+      <section className="felt-panel p-4 sm:p-5">
+        <div className="flex justify-between items-baseline mb-3 gap-2 flex-wrap">
           <div className="text-xs text-chip-gold uppercase tracking-wider">
             Equities
           </div>
@@ -85,38 +85,75 @@ export function ICMTrainer() {
         {equities.length === 0 ? (
           <div className="text-chip-ivory/60">Enter stacks and payouts.</div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-chip-ivory/60 text-xs uppercase tracking-wider">
-                <th className="text-left py-2">Seat</th>
-                <th className="text-right">Stack</th>
-                <th className="text-right">Chip %</th>
-                <th className="text-right">$ Equity</th>
-                <th className="text-right">$ %</th>
-                <th className="text-right">Diff</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile: stacked cards */}
+            <div className="sm:hidden space-y-2">
               {equities.map((e, i) => {
                 const chipPct = (stacks[i] / totalChips) * 100;
                 const prizePct = (e / totalPrize) * 100;
                 const diff = prizePct - chipPct;
                 return (
-                  <tr key={i} className="border-t border-felt-700">
-                    <td className="py-2">Player {i + 1}</td>
-                    <td className="text-right font-mono">{stacks[i]}</td>
-                    <td className="text-right font-mono">{chipPct.toFixed(1)}%</td>
-                    <td className="text-right font-mono text-chip-gold">${e.toFixed(2)}</td>
-                    <td className="text-right font-mono">{prizePct.toFixed(1)}%</td>
-                    <td className={"text-right font-mono " +
-                      (diff > 0 ? "text-chip-gold" : diff < 0 ? "text-chip-red" : "")}>
-                      {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
-                    </td>
-                  </tr>
+                  <div key={i} className="rounded-lg border border-felt-700 p-3">
+                    <div className="flex items-baseline justify-between mb-2">
+                      <div className="font-semibold">Player {i + 1}</div>
+                      <div className="text-chip-gold font-mono font-bold">${e.toFixed(2)}</div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <div className="text-chip-ivory/60">Stack</div>
+                        <div className="font-mono">{stacks[i]} ({chipPct.toFixed(1)}%)</div>
+                      </div>
+                      <div>
+                        <div className="text-chip-ivory/60">$ %</div>
+                        <div className="font-mono">{prizePct.toFixed(1)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-chip-ivory/60">Diff</div>
+                        <div className={"font-mono " +
+                          (diff > 0 ? "text-chip-gold" : diff < 0 ? "text-chip-red" : "")}>
+                          {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop: full table */}
+            <table className="hidden sm:table w-full text-sm">
+              <thead>
+                <tr className="text-chip-ivory/60 text-xs uppercase tracking-wider">
+                  <th className="text-left py-2">Seat</th>
+                  <th className="text-right">Stack</th>
+                  <th className="text-right">Chip %</th>
+                  <th className="text-right">$ Equity</th>
+                  <th className="text-right">$ %</th>
+                  <th className="text-right">Diff</th>
+                </tr>
+              </thead>
+              <tbody>
+                {equities.map((e, i) => {
+                  const chipPct = (stacks[i] / totalChips) * 100;
+                  const prizePct = (e / totalPrize) * 100;
+                  const diff = prizePct - chipPct;
+                  return (
+                    <tr key={i} className="border-t border-felt-700">
+                      <td className="py-2">Player {i + 1}</td>
+                      <td className="text-right font-mono">{stacks[i]}</td>
+                      <td className="text-right font-mono">{chipPct.toFixed(1)}%</td>
+                      <td className="text-right font-mono text-chip-gold">${e.toFixed(2)}</td>
+                      <td className="text-right font-mono">{prizePct.toFixed(1)}%</td>
+                      <td className={"text-right font-mono " +
+                        (diff > 0 ? "text-chip-gold" : diff < 0 ? "text-chip-red" : "")}>
+                        {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
         )}
         <div className="text-xs text-chip-ivory/60 mt-3">
           <strong>Diff</strong> = how much your $ equity over/underperforms your chip share.

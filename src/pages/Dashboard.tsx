@@ -26,51 +26,47 @@ export function Dashboard() {
     : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <header>
-        <div className="text-chip-gold text-sm uppercase tracking-widest mb-2">
+        <div className="text-chip-gold text-xs sm:text-sm uppercase tracking-widest mb-1 sm:mb-2">
           Your Edge Path
         </div>
-        <h1 className="text-4xl font-bold mb-3">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 leading-tight">
           {completed === 0
             ? "Welcome. Let's build an edge."
             : completed === TOTAL_LESSONS
               ? "You've graduated the foundation."
               : `Week ${currentWeek?.week} · ${currentWeek?.title}`}
         </h1>
-        <p className="text-chip-ivory/70 max-w-2xl">
+        <p className="text-sm sm:text-base text-chip-ivory/70 max-w-2xl">
           {completed === 0
             ? "12 weeks. 60 lessons. Five interactive trainers. Everything you need to go from zero to genuine edge in NLHE cash and tournaments."
             : currentWeek?.description}
         </p>
       </header>
 
-      {/* Today's lesson */}
+      {/* Today's lesson — hero CTA */}
       {nextLesson && (
-        <section className="felt-panel p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-xs text-chip-gold uppercase tracking-wider mb-1">
-                Next Up · W{nextLesson.week}D{nextLesson.day}
-              </div>
-              <h2 className="text-2xl font-bold mb-2">{nextLesson.title}</h2>
-              <p className="text-chip-ivory/70 mb-4">{nextLesson.focus}</p>
-              <div className="flex gap-3 items-center flex-wrap">
-                <Link to={`/lesson/${nextLesson.id}`} className="btn">
-                  Start lesson
+        <section className="relative felt-panel overflow-hidden p-5 sm:p-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-chip-gold/15 via-transparent to-transparent" />
+          <div className="relative">
+            <div className="text-[11px] sm:text-xs text-chip-gold uppercase tracking-wider mb-1 font-semibold">
+              Next Up · W{nextLesson.week}D{nextLesson.day} · ~{nextLesson.minutes} min
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-1.5 leading-snug">{nextLesson.title}</h2>
+            <p className="text-sm text-chip-ivory/70 mb-4">{nextLesson.focus}</p>
+            <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 sm:gap-3">
+              <Link to={`/lesson/${nextLesson.id}`} className="btn w-full sm:w-auto">
+                Start lesson →
+              </Link>
+              {nextLesson.trainer && (
+                <Link
+                  to={`/trainers/${nextLesson.trainer}`}
+                  className="btn-ghost w-full sm:w-auto text-sm"
+                >
+                  Open linked trainer
                 </Link>
-                <span className="text-sm text-chip-ivory/60">
-                  ~{nextLesson.minutes} min
-                </span>
-                {nextLesson.trainer && (
-                  <Link
-                    to={`/trainers/${nextLesson.trainer}`}
-                    className="btn-ghost text-sm"
-                  >
-                    Linked trainer
-                  </Link>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </section>
@@ -124,9 +120,9 @@ export function Dashboard() {
 
 function Stat({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <div className="felt-panel p-4">
+    <div className="felt-panel p-3 sm:p-4">
       <div className="text-xs text-chip-ivory/60 uppercase tracking-wider">{label}</div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
+      <div className="text-xl sm:text-2xl font-bold mt-1">{value}</div>
       {detail && <div className="text-xs text-chip-ivory/50 mt-1">{detail}</div>}
     </div>
   );

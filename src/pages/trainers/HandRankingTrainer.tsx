@@ -58,23 +58,23 @@ export function HandRankingTrainer() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-baseline justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Hand Ranking Quiz</h1>
+      <header className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold">Hand Ranking Quiz</h1>
           <p className="text-chip-ivory/70">Which 5-card hand wins?</p>
         </div>
-        <div className="text-right text-sm">
+        <div className="text-right text-sm shrink-0">
           <div>Streak: <strong className="text-chip-gold">{streak}</strong></div>
           <div className="text-chip-ivory/60">Best: {best}</div>
         </div>
       </header>
 
-      <section className="felt-panel p-6 space-y-5">
+      <section className="felt-panel p-4 sm:p-6 space-y-5">
         <div>
           <div className="text-xs text-chip-gold uppercase tracking-wider mb-2">
             Community
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2 flex-wrap">
             {scenario.community.map((c, i) => (
               <PlayingCard key={i} card={c} size="md" />
             ))}
@@ -97,10 +97,10 @@ export function HandRankingTrainer() {
         </div>
 
         {!picked ? (
-          <div className="flex gap-2 flex-wrap justify-center pt-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 pt-2">
             <button className="btn" onClick={() => answer("A")}>Hand A wins</button>
             <button className="btn" onClick={() => answer("B")}>Hand B wins</button>
-            <button className="btn-ghost" onClick={() => answer("TIE")}>Tie</button>
+            <button className="btn-ghost col-span-2" onClick={() => answer("TIE")}>Tie</button>
           </div>
         ) : (
           <div className="pt-2 space-y-3">
@@ -139,7 +139,7 @@ function PlayerHand({
       <div className="text-xs text-chip-gold uppercase tracking-wider mb-2">
         {label}
       </div>
-      <div className="flex gap-2 mb-2">
+      <div className="flex gap-1.5 sm:gap-2 mb-2">
         {cards.map((c, i) => <PlayingCard key={i} card={c} />)}
       </div>
       {category && (

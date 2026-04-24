@@ -18,7 +18,7 @@ export function LessonPage() {
 
   return (
     <article className="space-y-8 pb-12">
-      <div className="flex items-center gap-3 text-xs text-chip-ivory/60">
+      <div className="flex items-center gap-2 text-xs text-chip-ivory/60 flex-wrap">
         <Link to="/curriculum" className="hover:text-chip-gold">Curriculum</Link>
         <span>&rsaquo;</span>
         <Link to={`/week/${lesson.week}`} className="hover:text-chip-gold">
@@ -32,8 +32,8 @@ export function LessonPage() {
         <div className="text-chip-gold text-xs uppercase tracking-widest mb-2">
           W{lesson.week} · Day {lesson.day} · {lesson.minutes} min
         </div>
-        <h1 className="text-4xl font-bold mb-3">{lesson.title}</h1>
-        <p className="text-xl text-chip-ivory/80 italic">{lesson.focus}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3">{lesson.title}</h1>
+        <p className="text-lg sm:text-xl text-chip-ivory/80 italic">{lesson.focus}</p>
       </header>
 
       <section className="felt-panel p-5">
@@ -95,8 +95,8 @@ export function LessonPage() {
 
       {lesson.trainer && (
         <section className="felt-panel p-5">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
               <div className="text-xs text-chip-gold uppercase tracking-wider mb-1">
                 Interactive Trainer
               </div>
@@ -111,19 +111,19 @@ export function LessonPage() {
         </section>
       )}
 
-      <div className="flex items-center gap-3 pt-4">
+      <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 sm:gap-3 pt-4">
         <button
-          className={done ? "btn-ghost" : "btn"}
+          className={done ? "btn-ghost w-full sm:w-auto" : "btn w-full sm:w-auto"}
           onClick={() => {
             if (done) progressStore.uncompleteLesson(lesson.id);
             else progressStore.completeLesson(lesson.id);
           }}
         >
-          {done ? "\u2713 Completed (click to undo)" : "Mark complete"}
+          {done ? "\u2713 Completed (tap to undo)" : "Mark complete"}
         </button>
         {next && (
           <button
-            className="btn-ghost"
+            className="btn-ghost w-full sm:w-auto"
             onClick={() => {
               if (!done) progressStore.completeLesson(lesson.id);
               nav(`/lesson/${next.id}`);
@@ -134,7 +134,7 @@ export function LessonPage() {
         )}
       </div>
 
-      <div className="flex justify-between text-sm text-chip-ivory/60 border-t border-felt-700 pt-4">
+      <div className="flex justify-between gap-4 text-sm text-chip-ivory/60 border-t border-felt-700 pt-4 flex-wrap">
         {prev ? (
           <Link to={`/lesson/${prev.id}`} className="hover:text-chip-gold">
             &larr; {prev.title}
