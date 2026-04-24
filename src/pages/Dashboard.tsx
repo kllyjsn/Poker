@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { CURRICULUM, ALL_LESSONS, TOTAL_LESSONS } from "../data/curriculum";
-import { useProgress } from "../store/progress";
+import { srsQueueStats, useProgress } from "../store/progress";
 
 export function Dashboard() {
   const progress = useProgress();
+  const queue = srsQueueStats(progress);
   const completedLessons = new Set(
     Object.entries(progress.lessons)
       .filter(([, v]) => v.completed)
@@ -70,6 +71,24 @@ export function Dashboard() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Review queue CTA — only when there's something due */}
+      {queue.due > 0 && (
+        <Link
+          to="/stats"
+          className="relative felt-panel overflow-hidden p-4 sm:p-5 flex items-center gap-4 hover:border-chip-gold/50 transition block"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-chip-red/20 via-transparent to-transparent" />
+          <div className="relative flex-1 min-w-0">
+            <div className="text-[11px] text-chip-gold uppercase tracking-wider mb-0.5">Review queue</div>
+            <div className="text-lg sm:text-xl font-bold">
+              {queue.due} item{queue.due === 1 ? "" : "s"} due
+            </div>
+            <div className="text-xs text-chip-ivory/60">Weak spots the SR engine wants you to re-drill.</div>
+          </div>
+          <div className="relative text-chip-gold font-bold text-sm">Review →</div>
+        </Link>
       )}
 
       {/* Stats */}

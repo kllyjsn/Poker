@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { PlayingCard } from "../../components/Card";
-import type { Card } from "../../lib/poker";
-import { evaluate7, fullDeck, shuffle } from "../../lib/poker";
+import type { Card, EvalResult } from "../../lib/poker";
+import { bestFive, cardId, evaluate7, fullDeck, shuffle } from "../../lib/poker";
 import { progressStore } from "../../store/progress";
 
 interface Scenario {
@@ -9,6 +9,8 @@ interface Scenario {
   handB: Card[];
   community: Card[];
   winner: "A" | "B" | "TIE";
+  /** Scenario class for SRS, e.g. "Flush-vs-Straight" or "Tie". */
+  scenarioKey: string;
 }
 
 function makeScenario(): Scenario {
@@ -20,7 +22,11 @@ function makeScenario(): Scenario {
   const evB = evaluate7(handB.concat(community));
   const winner: "A" | "B" | "TIE" =
     evA.score > evB.score ? "A" : evB.score > evA.score ? "B" : "TIE";
-  return { handA, handB, community, winner };
+  const cats = [evA.category, evB.category].sort();
+  const scenarioKey = winner === "TIE"
+    ? `Tie-${cats[0]}`
+    : `${winner === "A" ? evA.category : evB.category}-vs-${winner === "A" ? evB.category : evA.category}`;
+  return { handA, handB, community, winner, scenarioKey };
 }
 
 export function HandRankingTrainer() {
@@ -41,7 +47,7 @@ export function HandRankingTrainer() {
   const answer = (guess: "A" | "B" | "TIE") => {
     setPicked(guess);
     const ok = guess === scenario.winner;
-    progressStore.recordDrill("hand-ranking", ok);
+    progressStore.recordDrill("hand-ranking", ok, scenario.scenarioKey);
     if (ok) {
       const s = streak + 1;
       setStreak(s);
@@ -55,6 +61,9 @@ export function HandRankingTrainer() {
     setScenario(makeScenario());
     setPicked(null);
   };
+
+  const bestA = useMemo(() => bestFive(scenario.handA.concat(scenario.community), evA), [scenario, evA]);
+  const bestB = useMemo(() => bestFive(scenario.handB.concat(scenario.community), evB), [scenario, evB]);
 
   return (
     <div className="space-y-6">
@@ -76,7 +85,13 @@ export function HandRankingTrainer() {
           </div>
           <div className="flex gap-1.5 sm:gap-2 flex-wrap">
             {scenario.community.map((c, i) => (
-              <PlayingCard key={i} card={c} size="md" />
+              <PlayingCard
+                key={i}
+                card={c}
+                size="md"
+                highlight={picked ? isInBest(c, scenario.winner === "B" ? bestB : bestA) : false}
+                dimmed={picked ? !isInBest(c, scenario.winner === "B" ? bestB : bestA) : false}
+              />
             ))}
           </div>
         </div>
@@ -85,13 +100,15 @@ export function HandRankingTrainer() {
           <PlayerHand
             label="Hand A"
             cards={scenario.handA}
-            category={picked ? evA.category : undefined}
+            ev={picked ? evA : undefined}
+            best={picked ? bestA : undefined}
             won={picked ? scenario.winner === "A" : undefined}
           />
           <PlayerHand
             label="Hand B"
             cards={scenario.handB}
-            category={picked ? evB.category : undefined}
+            ev={picked ? evB : undefined}
+            best={picked ? bestB : undefined}
             won={picked ? scenario.winner === "B" : undefined}
           />
         </div>
@@ -103,30 +120,74 @@ export function HandRankingTrainer() {
             <button className="btn-ghost col-span-2" onClick={() => answer("TIE")}>Tie</button>
           </div>
         ) : (
-          <div className="pt-2 space-y-3">
-            <div className={picked === scenario.winner
-              ? "text-chip-gold text-lg font-semibold"
-              : "text-chip-red text-lg font-semibold"}>
-              {picked === scenario.winner ? "Correct \u2713" : "Incorrect \u2717"}
-              {" — "}
-              {scenario.winner === "TIE"
-                ? "Tie"
-                : `Hand ${scenario.winner} wins with ${scenario.winner === "A" ? evA.category : evB.category}`}
-            </div>
-            <button className="btn" onClick={next}>Next hand &rarr;</button>
-          </div>
+          <Feedback
+            correct={picked === scenario.winner}
+            winner={scenario.winner}
+            evA={evA}
+            evB={evB}
+            onNext={next}
+          />
         )}
       </section>
     </div>
   );
 }
 
+function isInBest(c: Card, best: Card[]): boolean {
+  const id = cardId(c);
+  return best.some(b => cardId(b) === id);
+}
+
+function Feedback({
+  correct, winner, evA, evB, onNext,
+}: {
+  correct: boolean;
+  winner: "A" | "B" | "TIE";
+  evA: EvalResult;
+  evB: EvalResult;
+  onNext: () => void;
+}) {
+  const verdict = winner === "TIE"
+    ? `Split pot — both players have ${evA.category}`
+    : `Hand ${winner} wins with ${winner === "A" ? evA.category : evB.category}`;
+  return (
+    <div className="pt-2 space-y-3">
+      <div className={correct
+        ? "text-chip-gold text-lg font-semibold"
+        : "text-chip-red text-lg font-semibold"}>
+        {correct ? "Correct \u2713" : "Incorrect \u2717"} — {verdict}
+      </div>
+      <div className="text-sm text-chip-ivory/80 space-y-1">
+        <div>
+          <strong>Hand A:</strong> {evA.category}
+        </div>
+        <div>
+          <strong>Hand B:</strong> {evB.category}
+        </div>
+        {winner !== "TIE" && evA.category === evB.category && (
+          <div className="text-chip-ivory/60">
+            Same category — kickers decide. Higher ranks play.
+          </div>
+        )}
+        {winner !== "TIE" && evA.category !== evB.category && (
+          <div className="text-chip-ivory/60">
+            {winner === "A" ? evA.category : evB.category} beats{" "}
+            {winner === "A" ? evB.category : evA.category} in the poker hand ranking.
+          </div>
+        )}
+      </div>
+      <button className="btn" onClick={onNext}>Next hand &rarr;</button>
+    </div>
+  );
+}
+
 function PlayerHand({
-  label, cards, category, won,
+  label, cards, ev, best, won,
 }: {
   label: string;
   cards: Card[];
-  category?: string;
+  ev?: EvalResult;
+  best?: Card[];
   won?: boolean;
 }) {
   return (
@@ -140,11 +201,18 @@ function PlayerHand({
         {label}
       </div>
       <div className="flex gap-1.5 sm:gap-2 mb-2">
-        {cards.map((c, i) => <PlayingCard key={i} card={c} />)}
+        {cards.map((c, i) => (
+          <PlayingCard
+            key={i}
+            card={c}
+            highlight={best ? isInBest(c, best) : false}
+            dimmed={best ? !isInBest(c, best) : false}
+          />
+        ))}
       </div>
-      {category && (
+      {ev && (
         <div className="text-sm text-chip-ivory/80">
-          Best 5: <strong>{category}</strong>
+          Best 5: <strong>{ev.category}</strong>
         </div>
       )}
     </div>
