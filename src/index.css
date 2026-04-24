@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-felt-900 text-chip-ivory font-display antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(24, 80, 48, 0.35), transparent 60%),
+      radial-gradient(ellipse at bottom, rgba(14, 39, 64, 0.35), transparent 60%);
+  }
+}
+
+@layer components {
+  .felt-panel {
+    @apply rounded-2xl bg-felt-800/80 border border-felt-700 shadow-felt backdrop-blur-sm;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide shadow-chip;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition
+           bg-chip-gold text-felt-900 hover:brightness-110 active:brightness-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition
+           border border-felt-600 text-chip-ivory hover:bg-felt-700/60;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition
+           bg-chip-red text-chip-ivory hover:brightness-110;
+  }
+  .card-face {
+    @apply bg-card-bg text-card-black rounded-md shadow-lg select-none;
+  }
+  .stat-grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3;
+  }
+}
