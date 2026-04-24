@@ -75,7 +75,7 @@ function ChartView({ position }: { position: Position }) {
         Opening range · {range.size} / 169 hands ({Math.round(range.size / 169 * 100)}%)
       </div>
       <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-1">
-        <table className="border-collapse mx-auto table-fixed text-[10px] sm:text-xs">
+        <table className="border-collapse mx-auto table-fixed text-[10px] sm:text-xs min-w-[26rem] sm:min-w-0">
           <tbody>
             {matrix.map((row, r) => (
               <tr key={r}>
