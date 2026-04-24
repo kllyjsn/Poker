@@ -45,6 +45,11 @@ const OPEN_RAISE_FIRST_IN: Record<Position, string[]> = {
 };
 
 // Expand shorthand to explicit 169-hand set.
+// Supports:
+//   - Single hands: "AKs", "TT", "72o"
+//   - Pair plus:    "22+" => 22..AA
+//   - Pair range:   "22-99" => 22, 33, ..., 99
+//   - Suited/Offsuit plus: "ATs+" => ATs, AJs, AQs, AKs
 export function expand(entries: string[]): Set<string> {
   const all = new Set<string>();
   const RANKS = ["2","3","4","5","6","7","8","9","T","J","Q","K","A"];

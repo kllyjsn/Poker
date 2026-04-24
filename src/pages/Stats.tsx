@@ -18,13 +18,18 @@ export function Stats() {
     const attempts = d?.attempts ?? 0;
     const correct = d?.correct ?? 0;
     const acc = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
-    return { ...t, attempts, correct, acc };
+    const evLossTotal = d?.evLossBbPer100 ?? 0;
+    const evLossPer = attempts > 0 ? evLossTotal / attempts : 0;
+    return { ...t, attempts, correct, acc, evLossTotal, evLossPer };
   });
 
   const breakdown = scenarioBreakdown(progress);
   const weakest = weakestScenarios(progress, 5);
   const totalAttempts = perTrainer.reduce((a, t) => a + t.attempts, 0);
   const totalCorrect = perTrainer.reduce((a, t) => a + t.correct, 0);
+  // Sum EV loss across only solver-tracked trainers.
+  const totalEvLoss = perTrainer.reduce((a, t) => a + (t.evLossTotal ?? 0), 0);
+  const evLossPer = totalAttempts > 0 ? totalEvLoss / totalAttempts : 0;
 
   return (
     <div className="space-y-6">
@@ -61,6 +66,31 @@ export function Stats() {
               detail="days"
             />
           </section>
+
+          {totalEvLoss > 0 && (
+            <section className="felt-panel p-4 sm:p-6">
+              <div className="text-xs text-chip-gold uppercase tracking-wider mb-3">
+                Solver scorecard · EV loss
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  label="Avg per decision"
+                  value={`\u2212${evLossPer.toFixed(2)}`}
+                  detail="bb / 100 hands"
+                  accent={evLossPer > 0.5 ? "text-chip-red" : "text-chip-gold"}
+                />
+                <StatCard
+                  label="Cumulative loss"
+                  value={`\u2212${totalEvLoss.toFixed(1)}`}
+                  detail={`across ${totalAttempts} drills`}
+                  accent="text-chip-red"
+                />
+              </div>
+              <p className="text-[11px] text-chip-ivory/55 mt-3">
+                EV loss is computed against equilibrium frequencies. 0 = playing solver-perfect; higher = more bb left on the table per 100 hands at this skill level.
+              </p>
+            </section>
+          )}
 
           <section className="felt-panel p-4 sm:p-6">
             <div className="text-xs text-chip-gold uppercase tracking-wider mb-3">

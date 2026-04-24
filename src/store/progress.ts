@@ -12,6 +12,13 @@ export interface DrillStat {
   attempts: number;
   correct: number;
   lastAt?: number;
+  /**
+   * Cumulative EV loss in bb / 100 hands across all attempts in this
+   * trainer. Solver-driven trainers (preflop, 3bet, ...) write here on
+   * every drill; non-solver trainers (hand ranking, equity calc) leave
+   * it undefined.
+   */
+  evLossBbPer100?: number;
 }
 
 export interface ProgressState {
@@ -103,13 +110,23 @@ class ProgressStore {
 
   /**
    * Record a drill result. Updates the aggregate drill counter AND the
-   * per-scenario SRS card if a scenario key is provided.
+   * per-scenario SRS card if a scenario key is provided. Optional
+   * `evLossBbPer100` is added to the trainer's running total — solver
+   * trainers should pass it; others can omit it.
    */
-  recordDrill(id: string, correct: boolean, scenarioKey?: string): void {
+  recordDrill(
+    id: string,
+    correct: boolean,
+    scenarioKey?: string,
+    evLossBbPer100?: number,
+  ): void {
     const cur = this.state.drills[id] ?? { attempts: 0, correct: 0 };
     cur.attempts += 1;
     if (correct) cur.correct += 1;
     cur.lastAt = Date.now();
+    if (evLossBbPer100 !== undefined) {
+      cur.evLossBbPer100 = (cur.evLossBbPer100 ?? 0) + evLossBbPer100;
+    }
     this.state.drills[id] = cur;
     if (scenarioKey) {
       const k = `${id}:${scenarioKey}`;

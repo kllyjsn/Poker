@@ -4,6 +4,7 @@ import type { Position } from "../../lib/ranges";
 import { openingRange, rangeMatrix } from "../../lib/ranges";
 import { allStartingHands } from "../../lib/poker";
 import { pickWeight, weightedPick } from "../../lib/srs";
+import { rfiFrequency, rfiBestAction, rfiEvLossBbPer100, freqLabel } from "../../lib/solver";
 import { progressStore, useProgress } from "../../store/progress";
 
 const POSITIONS: Position[] = ["UTG", "HJ", "CO", "BTN", "SB"];
@@ -69,34 +70,48 @@ export function PreflopTrainer() {
 
 function ChartView({ position }: { position: Position }) {
   const matrix = useMemo(() => rangeMatrix(position), [position]);
-  const range = openingRange(position);
+  // Compute total weighted hands (frequency * 1) — i.e., the expected
+  // open count under the mixed strategy.
+  const weightedCount = useMemo(() => {
+    let n = 0;
+    for (const row of matrix) for (const cell of row) n += rfiFrequency(position, cell.key);
+    return n;
+  }, [matrix, position]);
   return (
     <section className="felt-panel p-3 sm:p-4">
       <div className="text-xs text-chip-gold uppercase tracking-wider mb-2">
-        Opening range · {range.size} / 169 hands ({Math.round(range.size / 169 * 100)}%)
+        Opening frequency · {weightedCount.toFixed(1)} / 169 hands ({Math.round(weightedCount / 169 * 100)}%)
       </div>
       <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-1">
         <table className="border-collapse mx-auto table-fixed text-[10px] sm:text-xs min-w-[26rem] sm:min-w-0">
           <tbody>
             {matrix.map((row, r) => (
               <tr key={r}>
-                {row.map((cell, c) => (
-                  <td
-                    key={c}
-                    className={clsx(
-                      "font-mono font-semibold border border-felt-900 text-center",
-                      "w-8 h-8 sm:w-10 sm:h-10",
-                      cell.inRange
-                        ? "bg-chip-gold/80 text-felt-900"
-                        : "bg-felt-800 text-chip-ivory/50",
-                      r === c ? "!bg-felt-700" : "",
-                      cell.inRange && r === c ? "!bg-chip-gold !text-felt-900" : "",
-                    )}
-                    title={cell.key}
-                  >
-                    {cell.key}
-                  </td>
-                ))}
+                {row.map((cell, c) => {
+                  const freq = rfiFrequency(position, cell.key);
+                  return (
+                    <td
+                      key={c}
+                      className={clsx(
+                        "font-mono font-semibold border border-felt-900 text-center",
+                        "w-8 h-8 sm:w-10 sm:h-10",
+                        freq > 0
+                          ? freq >= 0.99
+                            ? "bg-chip-gold text-felt-900"
+                            : freq >= 0.6
+                              ? "bg-chip-gold/75 text-felt-900"
+                              : freq >= 0.3
+                                ? "bg-chip-gold/45 text-felt-900"
+                                : "bg-chip-gold/20 text-chip-ivory"
+                          : "bg-felt-800 text-chip-ivory/50",
+                        r === c && freq === 0 ? "!bg-felt-700" : "",
+                      )}
+                      title={`${cell.key} · ${Math.round(freq * 100)}%`}
+                    >
+                      {cell.key}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -104,15 +119,13 @@ function ChartView({ position }: { position: Position }) {
         <div className="text-[10px] text-chip-ivory/40 text-center pt-1 sm:hidden">Scroll to see full matrix →</div>
       </div>
       <div className="text-xs text-chip-ivory/60 pt-3">
-        Gold cells = open/raise first-in. Diagonal = pairs. Upper-right = suited.
-        Lower-left = offsuit.
+        Gold intensity = raise frequency. Solid = always raise; faded = mixed strategy. Diagonal = pairs.
       </div>
     </section>
   );
 }
 
 function QuizView({ position }: { position: Position }) {
-  const range = useMemo(() => openingRange(position), [position]);
   const progress = useProgress();
 
   // SR-weighted hand selection: hands the user tends to miss come back
@@ -131,7 +144,8 @@ function QuizView({ position }: { position: Position }) {
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
 
-  const correct: "raise" | "fold" = range.has(hand) ? "raise" : "fold";
+  const equilibriumFreq = rfiFrequency(position, hand);
+  const correct: "raise" | "fold" = rfiBestAction(position, hand);
   const scenarioKey = `${position}:${hand}`;
   const card = progress.srs[`preflop:${scenarioKey}`];
 
@@ -140,10 +154,14 @@ function QuizView({ position }: { position: Position }) {
     return POSITIONS.filter(p => openingRange(p).has(hand));
   }, [hand]);
 
+  const [lastEvLoss, setLastEvLoss] = useState<number | null>(null);
+
   const answer = (guess: "raise" | "fold") => {
     setReveal(guess);
     const ok = guess === correct;
-    progressStore.recordDrill("preflop", ok, scenarioKey);
+    const evLoss = rfiEvLossBbPer100(equilibriumFreq, guess);
+    setLastEvLoss(evLoss);
+    progressStore.recordDrill("preflop", ok, scenarioKey, evLoss);
     if (ok) {
       const s = streak + 1;
       setStreak(s);
@@ -192,7 +210,25 @@ function QuizView({ position }: { position: Position }) {
           )}>
             {reveal === correct ? "Correct \u2713" : "Incorrect \u2717"}
             {" — "}
-            GTO-ish says <strong>{correct.toUpperCase()}</strong> from {position}.
+            Equilibrium says <strong>{correct.toUpperCase()}</strong> from {position}.
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-felt-900/60 rounded-lg p-3 text-center">
+              <div className="text-[10px] uppercase tracking-widest text-chip-ivory/50">Equilibrium frequency</div>
+              <FrequencyBar freq={equilibriumFreq} />
+              <div className="text-xs text-chip-ivory/80 mt-1">{freqLabel(equilibriumFreq)}</div>
+            </div>
+            <div className="bg-felt-900/60 rounded-lg p-3 text-center">
+              <div className="text-[10px] uppercase tracking-widest text-chip-ivory/50">Your EV loss</div>
+              <div className={clsx(
+                "text-2xl font-bold mt-1",
+                (lastEvLoss ?? 0) === 0 ? "text-chip-gold" : "text-chip-red",
+              )}>
+                {lastEvLoss === 0 || lastEvLoss === null ? "0" : `−${lastEvLoss.toFixed(2)}`}
+              </div>
+              <div className="text-[10px] text-chip-ivory/50">bb / 100 hands</div>
+            </div>
           </div>
 
           <div className="felt-panel bg-felt-900/60 p-4 space-y-3">
@@ -226,6 +262,22 @@ function QuizView({ position }: { position: Position }) {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Visual frequency bar showing the equilibrium raise frequency.
+ * Gold = raise share, dim = fold share.
+ */
+function FrequencyBar({ freq }: { freq: number }) {
+  const raisePct = Math.round(freq * 100);
+  return (
+    <div className="mt-2 h-3 w-full rounded-full bg-felt-800 overflow-hidden border border-felt-700">
+      <div
+        className="h-full bg-chip-gold transition-all"
+        style={{ width: `${raisePct}%` }}
+      />
+    </div>
   );
 }
 
