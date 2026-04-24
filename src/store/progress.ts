@@ -72,6 +72,7 @@ class ProgressStore {
   }
 
   private emit(): void {
+    this.state = { ...this.state };
     this.save();
     for (const l of this.listeners) l(this.state);
   }
