@@ -70,7 +70,7 @@ export function PotOddsTrainer() {
           <div className="space-y-3">
             <div className="text-sm space-y-1">
               <div>
-                Pot odds = <span className="font-mono">{s.bet} / ({s.pot} + {s.bet}) = {requiredPct}%</span>
+                Pot odds = <span className="font-mono">{s.bet} / ({s.pot} + {s.bet} + {s.bet}) = {requiredPct}%</span>
               </div>
               <div>
                 Required equity: <strong>{requiredPct}%</strong> · You have: <strong>{s.equity}%</strong>
