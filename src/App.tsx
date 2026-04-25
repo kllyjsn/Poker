@@ -12,6 +12,11 @@ import { PotOddsTrainer } from "./pages/trainers/PotOddsTrainer";
 import { EquityTrainer } from "./pages/trainers/EquityTrainer";
 import { PreflopTrainer } from "./pages/trainers/PreflopTrainer";
 import { ICMTrainer } from "./pages/trainers/ICMTrainer";
+import { ThreeBetTrainer } from "./pages/trainers/ThreeBetTrainer";
+import { CbetTrainer } from "./pages/trainers/CbetTrainer";
+import { TurnBarrelTrainer } from "./pages/trainers/TurnBarrelTrainer";
+import { RiverDecisionTrainer } from "./pages/trainers/RiverDecisionTrainer";
+import { PushFoldTrainer } from "./pages/trainers/PushFoldTrainer";
 
 function App() {
   return (
@@ -29,6 +34,11 @@ function App() {
           <Route path="trainers/equity" element={<EquityTrainer />} />
           <Route path="trainers/preflop" element={<PreflopTrainer />} />
           <Route path="trainers/icm" element={<ICMTrainer />} />
+          <Route path="trainers/3bet" element={<ThreeBetTrainer />} />
+          <Route path="trainers/cbet" element={<CbetTrainer />} />
+          <Route path="trainers/turn-barrel" element={<TurnBarrelTrainer />} />
+          <Route path="trainers/river" element={<RiverDecisionTrainer />} />
+          <Route path="trainers/push-fold" element={<PushFoldTrainer />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

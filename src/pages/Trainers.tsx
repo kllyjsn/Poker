@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useProgress } from "../store/progress";
 
-type IconName = "cards" | "pot" | "equity" | "matrix" | "icm";
+type IconName = "cards" | "pot" | "equity" | "matrix" | "icm" | "threebet" | "cbet" | "turn" | "river" | "shove";
 
 const TRAINERS: Array<{
   slug: string;
@@ -50,6 +50,46 @@ const TRAINERS: Array<{
     week: 9,
     icon: "icm",
     accent: "from-violet-500/30 to-violet-700/10",
+  },
+  {
+    slug: "3bet",
+    name: "3-Bet Trainer",
+    desc: "Facing an open. 3-bet for value, bluff, flat, or fold. 8 spots, SR-driven.",
+    week: 4,
+    icon: "threebet",
+    accent: "from-fuchsia-500/30 to-fuchsia-700/10",
+  },
+  {
+    slug: "cbet",
+    name: "C-Bet Decision",
+    desc: "12 flop textures. Small, big, or check — learn the texture rules.",
+    week: 5,
+    icon: "cbet",
+    accent: "from-teal-500/30 to-teal-700/10",
+  },
+  {
+    slug: "turn-barrel",
+    name: "Turn Barrel",
+    desc: "Cbet flop, called. Turn arrives — overcard, brick, draw-completer, pair?",
+    week: 6,
+    icon: "turn",
+    accent: "from-cyan-500/30 to-cyan-700/10",
+  },
+  {
+    slug: "river",
+    name: "River Bluff Catch",
+    desc: "Pot odds × villain bluff frequency. Combo math on the explain.",
+    week: 7,
+    icon: "river",
+    accent: "from-orange-500/30 to-orange-700/10",
+  },
+  {
+    slug: "push-fold",
+    name: "MTT Push / Fold",
+    desc: "Nash shoves, 5-20bb. Tight UTG → wide BTN. Master the chart.",
+    week: 9,
+    icon: "shove",
+    accent: "from-lime-500/30 to-lime-700/10",
   },
 ];
 
@@ -148,6 +188,44 @@ function TrainerIcon({ name }: { name: IconName }) {
           <circle cx="6" cy="9" r="1.2" fill="currentColor" />
           <circle cx="12" cy="4" r="1.2" fill="currentColor" />
           <circle cx="18" cy="13" r="1.2" fill="currentColor" />
+        </svg>
+      );
+    case "threebet":
+      return (
+        <svg {...base}>
+          <path d="M4 16l4-4 4 4 4-8 4 4" />
+          <path d="M4 20h16" />
+        </svg>
+      );
+    case "cbet":
+      return (
+        <svg {...base}>
+          <rect x="3" y="6" width="18" height="12" rx="1.5" />
+          <path d="M8 12h8" />
+          <circle cx="6.5" cy="9.5" r="0.8" fill="currentColor" />
+          <circle cx="17.5" cy="14.5" r="0.8" fill="currentColor" />
+        </svg>
+      );
+    case "turn":
+      return (
+        <svg {...base}>
+          <path d="M5 12a7 7 0 0 1 14 0" />
+          <path d="M19 12l-2.5-2.5M19 12l2.5-2.5" />
+          <path d="M5 12v6h14v-6" />
+        </svg>
+      );
+    case "river":
+      return (
+        <svg {...base}>
+          <path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0" />
+          <path d="M3 18c2-3 4-3 6 0s4 3 6 0 4-3 6 0" />
+        </svg>
+      );
+    case "shove":
+      return (
+        <svg {...base}>
+          <path d="M5 12l7-7 7 7-3 3v5H8v-5z" />
+          <path d="M9 17h6" />
         </svg>
       );
   }
