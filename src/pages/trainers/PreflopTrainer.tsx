@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { Position } from "../../lib/ranges";
-import { openingRange, rangeMatrix } from "../../lib/ranges";
+import { rangeMatrix } from "../../lib/ranges";
 import { allStartingHands } from "../../lib/poker";
 import { pickWeight, weightedPick } from "../../lib/srs";
 import { rfiFrequency, rfiBestAction, rfiEvLossBbPer100, freqLabel } from "../../lib/solver";
@@ -149,9 +149,11 @@ function QuizView({ position }: { position: Position }) {
   const scenarioKey = `${position}:${hand}`;
   const card = progress.srs[`preflop:${scenarioKey}`];
 
-  // Which positions open this hand? Useful context on the reveal.
+  // Which positions open this hand at >=50%? Reads from the same
+  // mixed-frequency data the quiz uses so the explain panel can't
+  // contradict the answer.
   const openedBy = useMemo(() => {
-    return POSITIONS.filter(p => openingRange(p).has(hand));
+    return POSITIONS.filter(p => rfiFrequency(p, hand) >= 0.5);
   }, [hand]);
 
   const [lastEvLoss, setLastEvLoss] = useState<number | null>(null);
@@ -281,23 +283,34 @@ function FrequencyBar({ freq }: { freq: number }) {
   );
 }
 
-/** Horizontal bar showing which of the 5 positions open this hand. */
+/**
+ * Horizontal bar showing how often each position opens this hand. Solid
+ * gold = 100% raise; faded gold = mixed; dim = pure fold. Reads the
+ * same mixed-frequency data the quiz uses.
+ */
 function PositionBar({ hand }: { hand: string }) {
   return (
     <div className="grid grid-cols-5 gap-1.5">
       {POSITIONS.map(p => {
-        const included = openingRange(p).has(hand);
+        const freq = rfiFrequency(p, hand);
+        const tone =
+          freq >= 0.99 ? "bg-chip-gold text-felt-900 border-chip-gold"
+          : freq >= 0.5  ? "bg-chip-gold/70 text-felt-900 border-chip-gold/80"
+          : freq > 0     ? "bg-chip-gold/30 text-chip-ivory border-chip-gold/40"
+          :                "bg-felt-800/60 text-chip-ivory/40 border-felt-700";
         return (
           <div
             key={p}
             className={clsx(
-              "text-[10px] font-bold text-center py-1.5 rounded-md border",
-              included
-                ? "bg-chip-gold/80 text-felt-900 border-chip-gold"
-                : "bg-felt-800/60 text-chip-ivory/40 border-felt-700",
+              "text-[10px] font-bold text-center py-1.5 rounded-md border leading-tight",
+              tone,
             )}
+            title={`${p} · ${Math.round(freq * 100)}% raise`}
           >
-            {p}
+            <div>{p}</div>
+            {freq > 0 && freq < 1 && (
+              <div className="text-[9px] font-normal opacity-80">{Math.round(freq * 100)}%</div>
+            )}
           </div>
         );
       })}

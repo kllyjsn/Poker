@@ -19,17 +19,22 @@ export function Stats() {
     const correct = d?.correct ?? 0;
     const acc = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
     const evLossTotal = d?.evLossBbPer100 ?? 0;
-    const evLossPer = attempts > 0 ? evLossTotal / attempts : 0;
-    return { ...t, attempts, correct, acc, evLossTotal, evLossPer };
+    return { ...t, attempts, correct, acc, evLossTotal };
   });
 
   const breakdown = scenarioBreakdown(progress);
   const weakest = weakestScenarios(progress, 5);
   const totalAttempts = perTrainer.reduce((a, t) => a + t.attempts, 0);
   const totalCorrect = perTrainer.reduce((a, t) => a + t.correct, 0);
-  // Sum EV loss across only solver-tracked trainers.
+  // Sum EV loss across only solver-tracked trainers. Divide by attempts
+  // from those same trainers — counting hand-ranking / pot-odds attempts
+  // here would dilute the per-decision metric to look better than reality.
   const totalEvLoss = perTrainer.reduce((a, t) => a + (t.evLossTotal ?? 0), 0);
-  const evLossPer = totalAttempts > 0 ? totalEvLoss / totalAttempts : 0;
+  const solverAttempts = perTrainer.reduce(
+    (a, t) => a + ((progress.drills[t.id]?.evLossBbPer100 !== undefined) ? t.attempts : 0),
+    0,
+  );
+  const evLossPer = solverAttempts > 0 ? totalEvLoss / solverAttempts : 0;
 
   return (
     <div className="space-y-6">
@@ -82,7 +87,7 @@ export function Stats() {
                 <StatCard
                   label="Cumulative loss"
                   value={`\u2212${totalEvLoss.toFixed(1)}`}
-                  detail={`across ${totalAttempts} drills`}
+                  detail={`across ${solverAttempts} solver drills`}
                   accent="text-chip-red"
                 />
               </div>
