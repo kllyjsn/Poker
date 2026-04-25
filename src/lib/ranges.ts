@@ -45,7 +45,12 @@ const OPEN_RAISE_FIRST_IN: Record<Position, string[]> = {
 };
 
 // Expand shorthand to explicit 169-hand set.
-function expand(entries: string[]): Set<string> {
+// Supports:
+//   - Single hands: "AKs", "TT", "72o"
+//   - Pair plus:    "22+" => 22..AA
+//   - Pair range:   "22-99" => 22, 33, ..., 99
+//   - Suited/Offsuit plus: "ATs+" => ATs, AJs, AQs, AKs
+export function expand(entries: string[]): Set<string> {
   const all = new Set<string>();
   const RANKS = ["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
   const rankIdx = (r: string) => RANKS.indexOf(r);
@@ -54,6 +59,15 @@ function expand(entries: string[]): Set<string> {
       // pair plus, e.g. "22+" => 22..AA
       const start = rankIdx(e[0]);
       for (let i = start; i < RANKS.length; i++) {
+        all.add(`${RANKS[i]}${RANKS[i]}`);
+      }
+    } else if (e.length === 5 && e[2] === "-" && e[0] === e[1] && e[3] === e[4]) {
+      // pair range, e.g. "22-99" => 22..99
+      const start = rankIdx(e[0]);
+      const end = rankIdx(e[3]);
+      const lo = Math.min(start, end);
+      const hi = Math.max(start, end);
+      for (let i = lo; i <= hi; i++) {
         all.add(`${RANKS[i]}${RANKS[i]}`);
       }
     } else if (e.length === 4 && e[3] === "+") {

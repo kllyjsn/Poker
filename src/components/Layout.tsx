@@ -7,6 +7,7 @@ const NAV = [
   { to: "/", label: "Dashboard", icon: "home" },
   { to: "/curriculum", label: "Curriculum", icon: "book" },
   { to: "/trainers", label: "Trainers", icon: "spade" },
+  { to: "/stats", label: "Stats", icon: "chart" },
   { to: "/settings", label: "Settings", icon: "gear" },
 ] as const;
 
@@ -101,7 +102,7 @@ export function Layout() {
         className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-felt-800/95 backdrop-blur border-t border-felt-700 pb-safe"
         aria-label="Primary"
       >
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {NAV.map(n => (
             <NavLink
               key={n.to}
@@ -126,7 +127,7 @@ export function Layout() {
   );
 }
 
-function NavIcon({ name, big }: { name: "home" | "book" | "spade" | "gear"; big?: boolean }) {
+function NavIcon({ name, big }: { name: "home" | "book" | "spade" | "chart" | "gear"; big?: boolean }) {
   const size = big ? 22 : 18;
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
@@ -141,6 +142,10 @@ function NavIcon({ name, big }: { name: "home" | "book" | "spade" | "gear"; big?
     case "spade":
       return (
         <svg {...common} fill="currentColor" stroke="none"><path d="M12 2c-3 4-8 6-8 11a5 5 0 007.5 4.3L11 22h2l-.5-4.7A5 5 0 0020 13c0-5-5-7-8-11z" /></svg>
+      );
+    case "chart":
+      return (
+        <svg {...common}><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-6" /><path d="M3 20h18" /></svg>
       );
     case "gear":
       return (

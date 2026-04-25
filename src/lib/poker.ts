@@ -250,3 +250,89 @@ export function evaluate7(cards: Card[]): EvalResult {
 export function describeHand(e: EvalResult): string {
   return e.category;
 }
+
+// -- Best-five helper --------------------------------------------------------
+//
+// Given the 5..7 cards passed to evaluate7 and the resulting EvalResult,
+// return the specific 5 cards that form the winning hand. Useful for
+// highlighting "the cards that matter" in trainer UIs.
+
+export function bestFive(cards: Card[], eval_: EvalResult): Card[] {
+  const cat = eval_.category;
+  const byRank = new Map<number, Card[]>();
+  for (const c of cards) {
+    const v = RANK_VALUE[c.rank];
+    if (!byRank.has(v)) byRank.set(v, []);
+    byRank.get(v)!.push(c);
+  }
+  const bySuit = new Map<Suit, Card[]>();
+  for (const c of cards) {
+    if (!bySuit.has(c.suit)) bySuit.set(c.suit, []);
+    bySuit.get(c.suit)!.push(c);
+  }
+
+  if (cat === "Straight Flush" || cat === "Flush") {
+    let flushSuit: Suit | null = null;
+    for (const [s, cs] of bySuit) if (cs.length >= 5) { flushSuit = s; break; }
+    if (flushSuit) {
+      const suited = bySuit.get(flushSuit)!.slice().sort((a, b) => RANK_VALUE[b.rank] - RANK_VALUE[a.rank]);
+      if (cat === "Flush") return suited.slice(0, 5);
+      // straight flush: pick the 5 suited cards forming the straight ending at ranks[0]
+      const high = eval_.ranks[0];
+      const want = high === 5
+        ? [14, 5, 4, 3, 2]   // wheel (ace-low) SF
+        : [high, high - 1, high - 2, high - 3, high - 4];
+      const pool = suited.slice();
+      const out: Card[] = [];
+      for (const r of want) {
+        const idx = pool.findIndex(c => RANK_VALUE[c.rank] === r);
+        if (idx >= 0) out.push(pool.splice(idx, 1)[0]);
+      }
+      return out;
+    }
+  }
+
+  if (cat === "Four of a Kind") {
+    const quad = eval_.ranks[0];
+    const kicker = eval_.ranks[1];
+    return [...(byRank.get(quad) ?? []).slice(0, 4), ...(byRank.get(kicker) ?? []).slice(0, 1)];
+  }
+
+  if (cat === "Full House") {
+    const trip = eval_.ranks[0];
+    const pair = eval_.ranks[1];
+    return [...(byRank.get(trip) ?? []).slice(0, 3), ...(byRank.get(pair) ?? []).slice(0, 2)];
+  }
+
+  if (cat === "Straight") {
+    const high = eval_.ranks[0];
+    const want = high === 5 ? [14, 5, 4, 3, 2] : [high, high - 1, high - 2, high - 3, high - 4];
+    return want.map(r => (byRank.get(r) ?? [])[0]).filter(Boolean);
+  }
+
+  if (cat === "Three of a Kind") {
+    const trip = eval_.ranks[0];
+    const k1 = eval_.ranks[1];
+    const k2 = eval_.ranks[2];
+    return [...(byRank.get(trip) ?? []).slice(0, 3), ...(byRank.get(k1) ?? []).slice(0, 1), ...(byRank.get(k2) ?? []).slice(0, 1)];
+  }
+
+  if (cat === "Two Pair") {
+    const hi = eval_.ranks[0];
+    const lo = eval_.ranks[1];
+    const k = eval_.ranks[2];
+    return [...(byRank.get(hi) ?? []).slice(0, 2), ...(byRank.get(lo) ?? []).slice(0, 2), ...(byRank.get(k) ?? []).slice(0, 1)];
+  }
+
+  if (cat === "Pair") {
+    const pair = eval_.ranks[0];
+    const kickers = eval_.ranks.slice(1);
+    const out = [...(byRank.get(pair) ?? []).slice(0, 2)];
+    for (const k of kickers) out.push(...(byRank.get(k) ?? []).slice(0, 1));
+    return out.slice(0, 5);
+  }
+
+  // High Card: top 5 cards descending
+  const sorted = cards.slice().sort((a, b) => RANK_VALUE[b.rank] - RANK_VALUE[a.rank]);
+  return sorted.slice(0, 5);
+}
