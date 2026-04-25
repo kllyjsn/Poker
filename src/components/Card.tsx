@@ -4,7 +4,7 @@ import { SUIT_COLOR, SUIT_SYMBOL } from "../lib/poker";
 
 interface Props {
   card?: PokerCard;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "fluid";
   facedown?: boolean;
   className?: string;
 }
@@ -12,8 +12,9 @@ interface Props {
 export function PlayingCard({ card, size = "md", facedown, className }: Props) {
   const sizes = {
     sm: "w-10 h-14 text-sm",
-    md: "w-14 h-20 text-lg",
-    lg: "w-20 h-28 text-2xl",
+    md: "w-12 h-[68px] text-base sm:w-14 sm:h-20 sm:text-lg",
+    lg: "w-16 h-24 text-xl sm:w-20 sm:h-28 sm:text-2xl",
+    fluid: "w-full aspect-[5/7] text-[10px] sm:text-xs",
   }[size];
 
   if (!card || facedown) {
@@ -45,9 +46,9 @@ export function PlayingCard({ card, size = "md", facedown, className }: Props) {
     >
       <div className="flex flex-col items-start leading-none">
         <span className="font-bold">{card.rank}</span>
-        <span className="text-base leading-none">{sym}</span>
+        <span className="leading-none">{sym}</span>
       </div>
-      <div className="self-end text-2xl leading-none">{sym}</div>
+      <div className="self-end leading-none">{sym}</div>
     </div>
   );
 }

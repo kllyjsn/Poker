@@ -20,14 +20,14 @@ export function PreflopTrainer() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-baseline justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-3xl font-bold mb-1">Preflop Range Trainer</h1>
+      <header className="flex items-start justify-between flex-wrap gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Preflop Range Trainer</h1>
           <p className="text-chip-ivory/70">
             Opening ranges (RFI) at 100bb, 6-max. Chart to study, quiz to drill.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <button
             className={mode === "chart" ? "btn" : "btn-ghost"}
             onClick={() => setMode("chart")}
@@ -39,22 +39,24 @@ export function PreflopTrainer() {
         </div>
       </header>
 
-      <section className="felt-panel p-4 flex gap-2 flex-wrap">
-        {POSITIONS.map(p => (
-          <button
-            key={p}
-            className={clsx(
-              "px-4 py-2 rounded-lg font-semibold transition",
-              position === p
-                ? "bg-chip-gold text-felt-900"
-                : "border border-felt-600 hover:bg-felt-700/60",
-            )}
-            onClick={() => setPosition(p)}
-          >
-            {p}
-          </button>
-        ))}
-        <div className="w-full text-xs text-chip-ivory/60 pt-1">
+      <section className="felt-panel p-3 sm:p-4">
+        <div className="grid grid-cols-5 gap-2">
+          {POSITIONS.map(p => (
+            <button
+              key={p}
+              className={clsx(
+                "px-2 sm:px-4 py-2 rounded-lg font-semibold transition min-h-[44px]",
+                position === p
+                  ? "bg-chip-gold text-felt-900"
+                  : "border border-felt-600 hover:bg-felt-700/60",
+              )}
+              onClick={() => setPosition(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <div className="text-xs text-chip-ivory/60 pt-2">
           {POSITION_DESC[position]}
         </div>
       </section>
@@ -68,12 +70,12 @@ function ChartView({ position }: { position: Position }) {
   const matrix = useMemo(() => rangeMatrix(position), [position]);
   const range = openingRange(position);
   return (
-    <section className="felt-panel p-4">
+    <section className="felt-panel p-3 sm:p-4">
       <div className="text-xs text-chip-gold uppercase tracking-wider mb-2">
         Opening range · {range.size} / 169 hands ({Math.round(range.size / 169 * 100)}%)
       </div>
-      <div className="overflow-x-auto">
-        <table className="border-collapse mx-auto">
+      <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-1">
+        <table className="border-collapse mx-auto table-fixed text-[10px] sm:text-xs min-w-[26rem] sm:min-w-0">
           <tbody>
             {matrix.map((row, r) => (
               <tr key={r}>
@@ -81,9 +83,10 @@ function ChartView({ position }: { position: Position }) {
                   <td
                     key={c}
                     className={clsx(
-                      "text-[10px] md:text-xs font-mono border border-felt-900 w-9 h-9 md:w-10 md:h-10 text-center",
+                      "font-mono font-semibold border border-felt-900 text-center",
+                      "w-8 h-8 sm:w-10 sm:h-10",
                       cell.inRange
-                        ? "bg-chip-gold/80 text-felt-900 font-bold"
+                        ? "bg-chip-gold/80 text-felt-900"
                         : "bg-felt-800 text-chip-ivory/50",
                       r === c ? "!bg-felt-700" : "",
                       cell.inRange && r === c ? "!bg-chip-gold !text-felt-900" : "",
@@ -97,6 +100,7 @@ function ChartView({ position }: { position: Position }) {
             ))}
           </tbody>
         </table>
+        <div className="text-[10px] text-chip-ivory/40 text-center pt-1 sm:hidden">Scroll to see full matrix →</div>
       </div>
       <div className="text-xs text-chip-ivory/60 pt-3">
         Gold cells = open/raise first-in. Diagonal = pairs. Upper-right = suited.
@@ -140,17 +144,17 @@ function QuizView({ position }: { position: Position }) {
         <div>Streak: <strong className="text-chip-gold">{streak}</strong> · Best: {best}</div>
       </div>
 
-      <div className="text-center py-8">
+      <div className="text-center py-6 sm:py-8">
         <div className="text-xs text-chip-ivory/60 uppercase tracking-widest mb-3">
           First in, action on you. Raise or fold?
         </div>
-        <div className="text-7xl font-mono font-bold text-chip-gold">
+        <div className="text-6xl sm:text-7xl font-mono font-bold text-chip-gold">
           {hand}
         </div>
       </div>
 
       {reveal === null ? (
-        <div className="flex gap-3 justify-center">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:justify-center">
           <button className="btn" onClick={() => answer("raise")}>Raise</button>
           <button className="btn-danger" onClick={() => answer("fold")}>Fold</button>
         </div>

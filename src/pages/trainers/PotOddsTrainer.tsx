@@ -43,14 +43,14 @@ export function PotOddsTrainer() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-baseline justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Pot Odds Trainer</h1>
+      <header className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold">Pot Odds Trainer</h1>
           <p className="text-chip-ivory/70">
             Given villain's bet and your equity estimate — call or fold?
           </p>
         </div>
-        <div className="text-sm">Streak: <strong className="text-chip-gold">{streak}</strong></div>
+        <div className="text-sm shrink-0">Streak: <strong className="text-chip-gold">{streak}</strong></div>
       </header>
 
       <section className="felt-panel p-6 space-y-5">
@@ -62,7 +62,7 @@ export function PotOddsTrainer() {
         </div>
 
         {!reveal ? (
-          <div className="flex gap-3 justify-center">
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:justify-center">
             <button className="btn" onClick={() => answer("call")}>Call</button>
             <button className="btn-danger" onClick={() => answer("fold")}>Fold</button>
           </div>
@@ -70,7 +70,7 @@ export function PotOddsTrainer() {
           <div className="space-y-3">
             <div className="text-sm space-y-1">
               <div>
-                Pot odds = <span className="font-mono">{s.bet} / ({s.pot} + {s.bet} + {s.bet}) = {requiredPct}%</span>
+                Pot odds = <span className="font-mono break-words">{s.bet} / ({s.pot} + {s.bet} + {s.bet}) = {requiredPct}%</span>
               </div>
               <div>
                 Required equity: <strong>{requiredPct}%</strong> · You have: <strong>{s.equity}%</strong>

@@ -1,0 +1,19 @@
+{
+  "name": "PokerEdge",
+  "short_name": "PokerEdge",
+  "description": "From zero to edge in 90 days. NLHE curriculum + 5 interactive trainers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1f14",
+  "theme_color": "#0a1f14",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

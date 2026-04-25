@@ -15,13 +15,13 @@ export function Curriculum() {
       </header>
 
       {CURRICULUM.map(w => (
-        <section key={w.week} className="felt-panel p-6">
-          <div className="flex items-baseline justify-between mb-3">
-            <div>
+        <section key={w.week} className="felt-panel p-4 sm:p-6">
+          <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+            <div className="min-w-0">
               <div className="text-xs text-chip-gold uppercase tracking-widest">
                 Week {w.week}
               </div>
-              <h2 className="text-2xl font-bold">{w.title}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">{w.title}</h2>
               <p className="text-chip-ivory/70 mt-1">{w.theme}</p>
             </div>
             <Link to={`/week/${w.week}`} className="btn-ghost text-sm">
