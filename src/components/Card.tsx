@@ -6,10 +6,12 @@ interface Props {
   card?: PokerCard;
   size?: "sm" | "md" | "lg" | "fluid";
   facedown?: boolean;
+  dimmed?: boolean;    // used to mute cards NOT in the best-five set
+  highlight?: boolean; // used to emphasize cards IN the best-five set
   className?: string;
 }
 
-export function PlayingCard({ card, size = "md", facedown, className }: Props) {
+export function PlayingCard({ card, size = "md", facedown, dimmed, highlight, className }: Props) {
   const sizes = {
     sm: "w-10 h-14 text-sm",
     md: "w-12 h-[68px] text-base sm:w-14 sm:h-20 sm:text-lg",
@@ -38,8 +40,10 @@ export function PlayingCard({ card, size = "md", facedown, className }: Props) {
   return (
     <div
       className={clsx(
-        "card-face flex flex-col justify-between px-1.5 py-1 font-mono",
+        "card-face flex flex-col justify-between px-1.5 py-1 font-mono transition",
         color === "red" ? "text-card-red" : "text-card-black",
+        dimmed && "opacity-40",
+        highlight && "ring-2 ring-chip-gold ring-offset-1 ring-offset-felt-900",
         sizes,
         className,
       )}

@@ -6,6 +6,7 @@ import { WeekView } from "./pages/WeekView";
 import { LessonPage } from "./pages/Lesson";
 import { Trainers } from "./pages/Trainers";
 import { Settings } from "./pages/Settings";
+import { Stats } from "./pages/Stats";
 import { HandRankingTrainer } from "./pages/trainers/HandRankingTrainer";
 import { PotOddsTrainer } from "./pages/trainers/PotOddsTrainer";
 import { EquityTrainer } from "./pages/trainers/EquityTrainer";
@@ -22,6 +23,7 @@ function App() {
           <Route path="week/:week" element={<WeekView />} />
           <Route path="lesson/:id" element={<LessonPage />} />
           <Route path="trainers" element={<Trainers />} />
+          <Route path="stats" element={<Stats />} />
           <Route path="trainers/hand-ranking" element={<HandRankingTrainer />} />
           <Route path="trainers/pot-odds" element={<PotOddsTrainer />} />
           <Route path="trainers/equity" element={<EquityTrainer />} />

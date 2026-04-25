@@ -3,7 +3,8 @@ import clsx from "clsx";
 import type { Position } from "../../lib/ranges";
 import { openingRange, rangeMatrix } from "../../lib/ranges";
 import { allStartingHands } from "../../lib/poker";
-import { progressStore } from "../../store/progress";
+import { pickWeight, weightedPick } from "../../lib/srs";
+import { progressStore, useProgress } from "../../store/progress";
 
 const POSITIONS: Position[] = ["UTG", "HJ", "CO", "BTN", "SB"];
 const POSITION_DESC: Record<Position, string> = {
@@ -112,17 +113,37 @@ function ChartView({ position }: { position: Position }) {
 
 function QuizView({ position }: { position: Position }) {
   const range = useMemo(() => openingRange(position), [position]);
-  const [hand, setHand] = useState<string>(() => randomHand());
+  const progress = useProgress();
+
+  // SR-weighted hand selection: hands the user tends to miss come back
+  // more often. New hands (never seen) get baseline weight 1.
+  const pickNextHand = (): string => {
+    const hands = allStartingHands();
+    const weights = hands.map(h => {
+      const card = progress.srs[`preflop:${position}:${h}`];
+      return pickWeight(card);
+    });
+    return weightedPick(hands, weights);
+  };
+
+  const [hand, setHand] = useState<string>(() => pickNextHand());
   const [reveal, setReveal] = useState<null | "raise" | "fold">(null);
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
 
-  const correct = range.has(hand) ? "raise" : "fold";
+  const correct: "raise" | "fold" = range.has(hand) ? "raise" : "fold";
+  const scenarioKey = `${position}:${hand}`;
+  const card = progress.srs[`preflop:${scenarioKey}`];
+
+  // Which positions open this hand? Useful context on the reveal.
+  const openedBy = useMemo(() => {
+    return POSITIONS.filter(p => openingRange(p).has(hand));
+  }, [hand]);
 
   const answer = (guess: "raise" | "fold") => {
     setReveal(guess);
     const ok = guess === correct;
-    progressStore.recordDrill(`preflop-${position}`, ok);
+    progressStore.recordDrill("preflop", ok, scenarioKey);
     if (ok) {
       const s = streak + 1;
       setStreak(s);
@@ -133,7 +154,7 @@ function QuizView({ position }: { position: Position }) {
   };
 
   const next = () => {
-    setHand(randomHand());
+    setHand(pickNextHand());
     setReveal(null);
   };
 
@@ -151,6 +172,11 @@ function QuizView({ position }: { position: Position }) {
         <div className="text-6xl sm:text-7xl font-mono font-bold text-chip-gold">
           {hand}
         </div>
+        {card && card.attempts > 0 && (
+          <div className="text-[11px] text-chip-ivory/50 mt-2">
+            Seen {card.attempts}× · {Math.round((card.correct / card.attempts) * 100)}% correct
+          </div>
+        )}
       </div>
 
       {reveal === null ? (
@@ -159,22 +185,86 @@ function QuizView({ position }: { position: Position }) {
           <button className="btn-danger" onClick={() => answer("fold")}>Fold</button>
         </div>
       ) : (
-        <div className="space-y-3 text-center">
-          <div className={reveal === correct
-            ? "text-chip-gold font-semibold text-lg"
-            : "text-chip-red font-semibold text-lg"}>
+        <div className="space-y-4">
+          <div className={clsx(
+            "text-center text-lg font-semibold",
+            reveal === correct ? "text-chip-gold" : "text-chip-red",
+          )}>
             {reveal === correct ? "Correct \u2713" : "Incorrect \u2717"}
             {" — "}
             GTO-ish says <strong>{correct.toUpperCase()}</strong> from {position}.
           </div>
-          <button className="btn" onClick={next}>Next hand &rarr;</button>
+
+          <div className="felt-panel bg-felt-900/60 p-4 space-y-3">
+            <div className="text-xs text-chip-gold uppercase tracking-wider">Why</div>
+            <div className="text-sm text-chip-ivory/85">
+              {openedBy.length === 0 ? (
+                <><strong>{hand}</strong> is <em>not</em> opened from any position at 6-max 100bb. It's too weak to RFI.</>
+              ) : openedBy.length === 5 ? (
+                <><strong>{hand}</strong> is strong enough to open from <strong>every position</strong> (including UTG). Always raise.</>
+              ) : (
+                <>
+                  <strong>{hand}</strong> opens from:{" "}
+                  {openedBy.map((p, i) => (
+                    <span key={p}>
+                      <strong className="text-chip-gold">{p}</strong>{i < openedBy.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                  . Folds from tighter seats.
+                </>
+              )}
+            </div>
+            <PositionBar hand={hand} />
+            <div className="text-[11px] text-chip-ivory/60">
+              {classifyHand(hand)}
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <button className="btn" onClick={next}>Next hand &rarr;</button>
+          </div>
         </div>
       )}
     </section>
   );
 }
 
-function randomHand(): string {
-  const all = allStartingHands();
-  return all[Math.floor(Math.random() * all.length)];
+/** Horizontal bar showing which of the 5 positions open this hand. */
+function PositionBar({ hand }: { hand: string }) {
+  return (
+    <div className="grid grid-cols-5 gap-1.5">
+      {POSITIONS.map(p => {
+        const included = openingRange(p).has(hand);
+        return (
+          <div
+            key={p}
+            className={clsx(
+              "text-[10px] font-bold text-center py-1.5 rounded-md border",
+              included
+                ? "bg-chip-gold/80 text-felt-900 border-chip-gold"
+                : "bg-felt-800/60 text-chip-ivory/40 border-felt-700",
+            )}
+          >
+            {p}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Short textual note about the hand family (pairs, suited aces, etc.). */
+function classifyHand(hand: string): string {
+  if (hand.length === 2) {
+    const r = hand[0];
+    if ("AKQJ".includes(r)) return "Big pair — premium, 3-bet for value everywhere.";
+    if ("T98".includes(r)) return "Middle pair — strong opens, cautious vs 3-bets.";
+    return "Small pair — open in late position to setmine.";
+  }
+  const suited = hand.endsWith("s");
+  if (hand.startsWith("A") && suited) return "Suited ace — blocker value + flush / wheel potential.";
+  if (hand.startsWith("A") && !suited) return "Offsuit ace — weaker; folds in early position.";
+  if (hand.startsWith("K") && suited) return "Suited king — premium Broadway, opens widely.";
+  if (suited) return "Suited hand — playable for postflop equity (flushes, connectors).";
+  return "Offsuit hand — needs rank strength to profitably open.";
 }
