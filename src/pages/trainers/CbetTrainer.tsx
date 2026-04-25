@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { progressStore, useProgress } from "../../store/progress";
 import { pickWeight, weightedPick, type SrsCard } from "../../lib/srs";
 import { cbetDecision, randomBoard, type CbetAction } from "../../lib/postflop";
+import { postflopEvLossBbPer100 } from "../../lib/solver";
 import { PlayingCard } from "../../components/Card";
 import { parseCard } from "../../lib/poker";
 
@@ -44,7 +45,8 @@ export function CbetTrainer() {
 
   const choose = (a: CbetAction) => {
     setReveal(a);
-    progressStore.recordDrill(DRILL_ID, a === result.action, spotKey);
+    const ok = a === result.action;
+    progressStore.recordDrill(DRILL_ID, ok, spotKey, postflopEvLossBbPer100(ok, 2.0));
   };
 
   const next = () => {

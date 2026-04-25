@@ -11,6 +11,7 @@ import {
   type RaiserPos,
   type ThreeBetAction,
 } from "../../lib/threebet";
+import { postflopEvLossBbPer100 } from "../../lib/solver";
 
 const DRILL_ID = "3bet";
 
@@ -44,7 +45,10 @@ export function ThreeBetTrainer() {
 
   const choose = (action: ThreeBetAction) => {
     setReveal(action);
-    progressStore.recordDrill(DRILL_ID, action === correct, `${spot.label}:${hand}`);
+    const ok = action === correct;
+    progressStore.recordDrill(
+      DRILL_ID, ok, `${spot.label}:${hand}`, postflopEvLossBbPer100(ok, 5.0),
+    );
   };
 
   const next = () => {

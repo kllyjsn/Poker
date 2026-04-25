@@ -149,11 +149,11 @@ function QuizView({ position }: { position: Position }) {
   const scenarioKey = `${position}:${hand}`;
   const card = progress.srs[`preflop:${scenarioKey}`];
 
-  // Which positions open this hand at >=50%? Reads from the same
-  // mixed-frequency data the quiz uses so the explain panel can't
-  // contradict the answer.
+  // Which positions open this hand at >50%? Strict comparison matches
+  // rfiBestAction so the explain panel can't contradict the quiz answer
+  // for boundary 50% mixed hands (e.g. 22 from UTG).
   const openedBy = useMemo(() => {
-    return POSITIONS.filter(p => rfiFrequency(p, hand) >= 0.5);
+    return POSITIONS.filter(p => rfiFrequency(p, hand) > 0.5);
   }, [hand]);
 
   const [lastEvLoss, setLastEvLoss] = useState<number | null>(null);
