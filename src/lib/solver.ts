@@ -128,6 +128,24 @@ function evLossFromFreq(correctFreq: number, userFreq: number, scale: number): n
   return Math.round((scale * (diff - 0.15) / 0.85) * 100) / 100;
 }
 
+/**
+ * Pedagogical EV-loss for binary postflop / push-fold decisions.
+ * `correct` = true → 0 bb / 100 (no loss). false → `scale` (the full
+ * cost of the wrong line at this decision point). The scale per spot
+ * is hand-tuned to roughly reflect average bb / 100 lost in tracker
+ * databases for that decision class.
+ *
+ * Suggested scales:
+ *   - cbet, turn-barrel: 2.0 (one-street sizing/frequency leak)
+ *   - river:              3.0 (terminal decision; full pot at stake)
+ *   - 3bet defense:       5.0 (cold-call vs 4-bet vs fold tree)
+ *   - push-fold (MTT):    6.0 (Nash deviations are very expensive)
+ */
+export function postflopEvLossBbPer100(correct: boolean, scale: number): number {
+  if (correct) return 0;
+  return Math.round((scale * (1 - 0.15) / 0.85) * 100) / 100;
+}
+
 // ---------- Pretty labels for the explain panel -----------------------
 
 export function freqLabel(freq: number): string {

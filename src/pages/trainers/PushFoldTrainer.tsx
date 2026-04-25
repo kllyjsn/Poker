@@ -11,6 +11,7 @@ import {
   type ShovePos,
   type ShoveStack,
 } from "../../lib/pushfold";
+import { postflopEvLossBbPer100 } from "../../lib/solver";
 
 const DRILL_ID = "push-fold";
 
@@ -134,7 +135,10 @@ function QuizView({
 
   const choose = (a: "shove" | "fold") => {
     setReveal(a);
-    progressStore.recordDrill(DRILL_ID, a === correct, `${pos}-${stack}bb:${hand}`);
+    const ok = a === correct;
+    progressStore.recordDrill(
+      DRILL_ID, ok, `${pos}-${stack}bb:${hand}`, postflopEvLossBbPer100(ok, 6.0),
+    );
   };
   const next = () => {
     setHand(pickHand());

@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { progressStore, useProgress } from "../../store/progress";
 import { pickWeight, weightedPick, type SrsCard } from "../../lib/srs";
 import { riverDecision, type RiverAction } from "../../lib/postflop";
+import { postflopEvLossBbPer100 } from "../../lib/solver";
 import { PlayingCard } from "../../components/Card";
 import { parseCard } from "../../lib/poker";
 
@@ -94,7 +95,8 @@ export function RiverDecisionTrainer() {
 
   const choose = (a: RiverAction) => {
     setReveal(a);
-    progressStore.recordDrill(DRILL_ID, a === result.action, spot.key);
+    const ok = a === result.action;
+    progressStore.recordDrill(DRILL_ID, ok, spot.key, postflopEvLossBbPer100(ok, 3.0));
   };
   const next = () => {
     setSpotIdx(pickSpot(progress.srs, spotIdx));

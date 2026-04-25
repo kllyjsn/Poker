@@ -6,6 +6,7 @@ import {
   vs3betFreq,
   vs3betBestAction,
   vs3betEvLossBbPer100,
+  postflopEvLossBbPer100,
   freqLabel,
 } from "./solver";
 import type { Position } from "./ranges";
@@ -91,6 +92,46 @@ describe("vs-3bet", () => {
   it("EV loss positive for folding AA vs 3-bet", () => {
     const aa = vs3betFreq("CO", "BB", "AA");
     expect(vs3betEvLossBbPer100(aa, "fold")).toBeGreaterThan(3);
+  });
+});
+
+describe("postflopEvLossBbPer100 (binary postflop / push-fold helper)", () => {
+  it("zero loss when correct", () => {
+    expect(postflopEvLossBbPer100(true, 2.0)).toBe(0);
+    expect(postflopEvLossBbPer100(true, 6.0)).toBe(0);
+  });
+
+  it("returns full scale (within ε) when wrong", () => {
+    expect(postflopEvLossBbPer100(false, 2.0)).toBeCloseTo(2.0, 1);
+    expect(postflopEvLossBbPer100(false, 5.0)).toBeCloseTo(5.0, 1);
+    expect(postflopEvLossBbPer100(false, 6.0)).toBeCloseTo(6.0, 1);
+  });
+
+  it("scales monotonically with severity", () => {
+    expect(postflopEvLossBbPer100(false, 2.0))
+      .toBeLessThan(postflopEvLossBbPer100(false, 5.0));
+    expect(postflopEvLossBbPer100(false, 5.0))
+      .toBeLessThan(postflopEvLossBbPer100(false, 6.0));
+  });
+});
+
+describe("RFI explain panel boundary consistency (regression)", () => {
+  // The explain panel's "opens from" list and the quiz's correct action
+  // both derive from rfiFrequency. They MUST agree at the 50% boundary.
+  // Both rfiBestAction and the panel's filter must use strict > 0.5.
+  const POSITIONS: Position[] = ["UTG", "HJ", "CO", "BTN", "SB"];
+  const SAMPLE_HANDS = ["AA", "22", "ATo", "A3s", "98s", "65o", "K6s"];
+
+  it("panel `>0.5` filter never contradicts rfiBestAction", () => {
+    for (const hand of SAMPLE_HANDS) {
+      for (const pos of POSITIONS) {
+        const freq = rfiFrequency(pos, hand);
+        const bestAction = rfiBestAction(pos, hand);
+        const panelOpens = freq > 0.5;
+        if (bestAction === "raise") expect(panelOpens).toBe(true);
+        if (bestAction === "fold") expect(panelOpens).toBe(false);
+      }
+    }
   });
 });
 

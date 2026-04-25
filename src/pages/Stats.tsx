@@ -7,6 +7,11 @@ const TRAINERS = [
   { id: "hand-ranking", name: "Hand Ranking", slug: "hand-ranking", accent: "text-emerald-400" },
   { id: "pot-odds", name: "Pot Odds", slug: "pot-odds", accent: "text-sky-400" },
   { id: "preflop", name: "Preflop", slug: "preflop", accent: "text-rose-400" },
+  { id: "3bet", name: "3-Bet Defense", slug: "3bet", accent: "text-fuchsia-400" },
+  { id: "cbet", name: "C-Bet", slug: "cbet", accent: "text-amber-400" },
+  { id: "turn-barrel", name: "Turn Barrel", slug: "turn-barrel", accent: "text-orange-400" },
+  { id: "river", name: "River Decision", slug: "river", accent: "text-red-400" },
+  { id: "push-fold", name: "MTT Push / Fold", slug: "push-fold", accent: "text-lime-400" },
 ] as const;
 
 export function Stats() {
